@@ -1,15 +1,18 @@
 using LinearAlgebra
 using Plots
 
-u = [5.0, 0, -5.0, 0]
-v = [1, -5.0, 0, 5.0]
-x = [3.0, 0, -3.0, 0, 0, 0, 3.0]
-y = [0, -3.0, 0, 3.0, 2.4, -2.4, 0]
+# Neznani položaji radarjev (u_k, v_k)
+u = [2.0, 4.0, -5.0, 3.0]
+v = [-5.0, -5.0, -5.0, -5.0]
+# Položaji opravljenih meritev (x_i, y_i)
+x = [3.0, 0, -3.0, 0, 0, 0, 3.0, 1.5]
+y = [0, -3.0, 0, 3.0, 2.4, -2.4, -2.5]
+# Znani položaji radarjev
 uReal = [4.0, 0, -4.0, 0]
 vReal = [0, -4.0, 0, 4.0]
 
-# fukcija za izračun vrednosti z_i, jakosti signalov, v točkah (x_i, y_i) na podlagi znanih
-# lokacij (u_k, v_k)
+# Fukcija za izračun vrednosti z_i, jakosti signalov, v točkah (x_i, y_i) na podlagi znanih
+# lokacij (uReal_k, vReal_k)
 function strengthes(x, y, uReal, vReal)
     res = []
     for (xi, yi) in zip(x, y)
@@ -18,12 +21,12 @@ function strengthes(x, y, uReal, vReal)
     return res
 end
 
-# fukcija V_i(u, v). Izračuna vsoto jakosti signalov v točki (x_i, y_i);
+# Fukcija V_i(u, v). Izračuna vsoto jakosti signalov radarjev v točki (x_i, y_i);
 function signalStrength(xi, yi, u, v)
     return sum(1 / ((xi - ui)^2 + (yi - vi)^2) for (ui, vi) in zip(u, v))
 end
 
-# funkcija, ki jo minimiziramo v smislu metode najmanjših kvadratov
+# Funkcija, ki jo minimiziramo v smislu metode najmanjših kvadratov
 function F(z, u, v, x, y) 
     return sum((signalStrength(xi, yi, u, v) - zi)^2 for (xi, yi, zi) in zip(x, y, z))
 end
@@ -108,6 +111,7 @@ end
 z = strengthes(x, y, uReal, vReal)
 #z .+= 0.01 .* randn(length(z))  # dodamo naključni šum
 
+# Začetni približek
 x0 = vcat(u, v)
 X, _, koraki = gradmet(z, x, y, 0.01, x0; tol = 1e-10, record_steps = true, maxit = 10000)
 
