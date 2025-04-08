@@ -1,70 +1,97 @@
 using LinearAlgebra
 using Plots
 
-u = [0.5, 0, -0.5, 0]
-v = [0, -0.5, 0, 0.5]
-x = [2.0, 0, -2.0, 0]
-y = [0, -2.0, 0, 2.0]
-xreal = [1.0, 0, -1.0, 0]
-yreal = [0, -1.0, 0, 1.0]
-z = [1.511, 1.511, 1.511, 1.511]
+u = [5.0, 0, -5.0, 0]
+v = [1, -5.0, 0, 5.0]
+x = [3.0, 0, -3.0, 0, 0, 0, 3.0]
+y = [0, -3.0, 0, 3.0, 2.4, -2.4, 0]
+uReal = [4.0, 0, -4.0, 0]
+vReal = [0, -4.0, 0, 4.0]
 
+# fukcija za izračun vrednosti z_i, jakosti signalov, v točkah (x_i, y_i) na podlagi znanih
+# lokacij (u_k, v_k)
+function strengthes(x, y, uReal, vReal)
+    res = []
+    for (xi, yi) in zip(x, y)
+        push!(res, signalStrength(xi, yi, uReal, vReal))
+    end
+    return res
+end
+
+# fukcija V_i(u, v). Izračuna vsoto jakosti signalov v točki (x_i, y_i);
 function signalStrength(xi, yi, u, v)
-    return sum(1 / ((xi - u[i])^2 + (yi - v[i])^2) for i in eachindex(u))
+    return sum(1 / ((xi - ui)^2 + (yi - vi)^2) for (ui, vi) in zip(u, v))
 end
 
+# funkcija, ki jo minimiziramo v smislu metode najmanjših kvadratov
 function F(z, u, v, x, y) 
-    return sum((signalStrength(x[i], y[i], u, v) - z[i])^2 for i in eachindex(z))
+    return sum((signalStrength(xi, yi, u, v) - zi)^2 for (xi, yi, zi) in zip(x, y, z))
 end
 
+# Parcialni odvod j(x_i, y_i) po u_k
 function DSignalStrengthU(xi, yi, ui, vi)
     return 2 * (xi - ui) / ((xi - ui)^2 + (yi - vi)^2)^2
 end
 
+# Parcialni odvod j(x_i, y_i) po v_k
 function DSignalStrengthV(xi, yi, ui, vi)
     return 2 * (yi - vi) / ((xi - ui)^2 + (yi - vi)^2)^2
 end
 
+# Gradient funkcije F
 function GradF(z, u, v, x, y)
-    du = [sum(2 * (signalStrength(xi, yi, u, v) - zi) * DSignalStrengthU(xi, yi, ui, vi) for (xi, yi, zi) in zip(x, y, z)) for (ui, vi) in zip(u, v)]
-    dv = [sum(2 * (signalStrength(xi, yi, u, v) - zi) * DSignalStrengthV(xi, yi, ui, vi) for (xi, yi, zi) in zip(x, y, z)) for (ui, vi) in zip(u, v)]
+    # du = [sum(2 * (signalStrength(xi, yi, u, v) - zi) * DSignalStrengthU(xi, yi, ui, vi) for (xi, yi, zi) in zip(x, y, z)) for (ui, vi) in zip(u, v)]
+    # dv = [sum(2 * (signalStrength(xi, yi, u, v) - zi) * DSignalStrengthV(xi, yi, ui, vi) for (xi, yi, zi) in zip(x, y, z)) for (ui, vi) in zip(u, v)]
+    # return vcat(du, dv)
+    du = Float64[]
+    dv = Float64[]
+    for k in 1:length(u)
+        du_k = 0.0
+        dv_k = 0.0
+        for (xi, yi, zi) in zip(x, y, z)
+            du_k += 2 * (signalStrength(xi, yi, u, v) - zi) * DSignalStrengthU(xi, yi, u[k], v[k])
+            dv_k += 2 * (signalStrength(xi, yi, u, v) - zi) * DSignalStrengthV(xi, yi, u[k], v[k])
+        end
+        push!(du, du_k)
+        push!(dv, dv_k)
+    end
     return vcat(du, dv)
 end
 
-function gradmet(z, x, y, alpha, x0; tol = 1e-6, maxit = 10000, record_steps = false)
+# Gradientna metoda
+function gradmet(z, x, y, alpha, x0; tol = 1e-12, maxit = 10000, record_steps = false)
     n = 1
     x1 = x0
-    steps = [];
+    steps = []
+
     if record_steps
-        u0 = x1[1:length(x)]
-        v0 = x1[length(x)+1:end]
+        u0 = x1[1:length(x0) ÷ 2]
+        v0 = x1[length(x0) ÷ 2 + 1:end]
         for (ui, vi) in zip(u0, v0)
             push!(steps, [ui; vi])
         end
     end
+
     for outer n in 1:maxit
-        # one step of gradient descent
-        u0 = x0[1:length(x)]
-        v0 = x0[length(x)+1:end]
-        x1 = x0 .- alpha .* GradF(z, u0, v0, x, y)
-        # optionally add x to steps
-        #
+        u0 = x0[1:length(x0) ÷ 2]
+        v0 = x0[length(x0) ÷ 2 + 1:end]
+        grad = GradF(z, u0, v0, x, y)
+        x1 = x0 .- alpha .* grad
+
         if record_steps
-            korakiu = x1[1:length(x)]
-            korakiv = x1[length(x)+1:end]
+            korakiu = x1[1:length(x0) ÷ 2]
+            korakiv = x1[length(x0) ÷ 2 + 1:end]
             for (ui, vi) in zip(korakiu, korakiv)
                 push!(steps, [ui; vi])
             end
         end
-        #
-        # check if new x is within tolerance and ...
-        if norm(x1-x0) < alpha*tol # bolje, če pomnožimo z alpha
+
+        if norm(x1 - x0) < alpha * tol
             break
         end
-        # ... repeat id not
+
         x0 = x1
     end
-
     # a warning if maxit was reached
     if n == maxit
         @warn "no convergence after $maxit iterations"
@@ -77,15 +104,25 @@ function gradmet(z, x, y, alpha, x0; tol = 1e-6, maxit = 10000, record_steps = f
     end
 end
 
+# Izračun jakosti z_i v točkah (x_i, y_i).
+z = strengthes(x, y, uReal, vReal)
+#z .+= 0.01 .* randn(length(z))  # dodamo naključni šum
+
 x0 = vcat(u, v)
-X, _, koraki = gradmet(z, x, y, 0.01, x0; tol = 1e-6, record_steps = true)
+X, _, koraki = gradmet(z, x, y, 0.01, x0; tol = 1e-10, record_steps = true, maxit = 10000)
 
-xr = LinRange(-10, 10, 200)
-yr = LinRange(-10, 10, 200)
-z = [log(log(signalStrength(xi, yi, u, v) + 1)) for xi in xr, yi in yr]
+ures = X[1:length(u)]
+vres = X[length(u)+1:end]
+xr = LinRange(-7, 7, 200)
+yr = LinRange(-7, 7, 200)
+zr = [log(log(signalStrength(xi, yi, uReal, vReal) + 1)) for xi in xr, yi in yr]
 
-contour(xr, yr, z; ratio = 1)
-scatter!(x, y)
-scatter!([Tuple(T) for T in koraki])
-# plot!([Tuple(T) for T in koraki])
+# Narišemo konture za signal
+contour(xr, yr, zr'; ratio = 1, colorbar=true)
 
+# Dodamo začetne in končne pozicije radarjev
+scatter!(u, v, label="Začetni radarji", color=:red)
+scatter!(ures, vres, label="Ocene radarjev", color=:blue)
+
+# Dodamo korake gradientne metode
+scatter!([T[1] for T in koraki], [T[2] for T in koraki], ms=1, label="Koraki", color=:green)
