@@ -43,9 +43,6 @@ end
 
 # Gradient funkcije F
 function GradF(z, u, v, x, y)
-    # du = [sum(2 * (signalStrength(xi, yi, u, v) - zi) * DSignalStrengthU(xi, yi, ui, vi) for (xi, yi, zi) in zip(x, y, z)) for (ui, vi) in zip(u, v)]
-    # dv = [sum(2 * (signalStrength(xi, yi, u, v) - zi) * DSignalStrengthV(xi, yi, ui, vi) for (xi, yi, zi) in zip(x, y, z)) for (ui, vi) in zip(u, v)]
-    # return vcat(du, dv)
     du = Float64[]
     dv = Float64[]
     for k in 1:length(u)
@@ -117,15 +114,17 @@ X, _, koraki = gradmet(z, x, y, 0.01, x0; tol = 1e-10, record_steps = true, maxi
 
 ures = X[1:length(u)]
 vres = X[length(u)+1:end]
+
+# Narišemo konture za vsoto jakosti signalov
 xr = LinRange(-7, 7, 200)
 yr = LinRange(-7, 7, 200)
 zr = [log(log(signalStrength(xi, yi, uReal, vReal) + 1)) for xi in xr, yi in yr]
-
-# Narišemo konture za signal
 contour(xr, yr, zr'; ratio = 1, colorbar=true)
 
-# Dodamo začetne in končne pozicije radarjev
+# Dodamo začetne ocene pozicije radarjev
 scatter!(u, v, label="Začetni radarji", color=:red)
+
+# Dodamo rezultat izračuna pozicij radarjev
 scatter!(ures, vres, label="Ocene radarjev", color=:blue)
 
 # Dodamo korake gradientne metode
