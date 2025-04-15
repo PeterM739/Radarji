@@ -7,7 +7,7 @@ v = [-5.0, -5.0, -5.0, -5.0]
 # Položaji opravljenih meritev (x_i, y_i)
 x = [3.0, 0, -3.0, 0, 0, 0, 3.0, 1.5]
 y = [0, -3.0, 0, 3.0, 2.4, -2.4, -2.5]
-# Znani položaji radarjev
+# Pravi položaji radarjev
 uReal = [4.0, 0, -4.0, 0]
 vReal = [0, -4.0, 0, 4.0]
 
