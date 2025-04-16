@@ -2,8 +2,8 @@ using LinearAlgebra
 using Plots
 
 # Neznani položaji radarjev (u_k, v_k)
-u = [2.0, 4.0, -5.0, 3.0]
-v = [-5.0, -5.0, -5.0, -5.0]
+u = [2.0, 4.0, 5.0, -3.0]
+v = [-5.0, 0.0, 0.0, -5.0]
 # Položaji opravljenih meritev (x_i, y_i)
 x = [3.0, 0, -3.0, 0, 0, 0, 3.0, 1.5]
 y = [0, -3.0, 0, 3.0, 2.4, -2.4, -2.5]
@@ -128,4 +128,5 @@ scatter!(u, v, label="Začetni radarji", color=:red)
 scatter!(ures, vres, label="Ocene radarjev", color=:blue)
 
 # Dodamo korake gradientne metode
-scatter!([T[1] for T in koraki], [T[2] for T in koraki], ms=1, label="Koraki", color=:green)
+fig = scatter!([T[1] for T in koraki], [T[2] for T in koraki], ms=1, label="Koraki", color=:green)
+savefig("plot.png")
