@@ -10,11 +10,30 @@ y = [0, -3.0, 0, 3.0, 2.4, -2.4, -2.5]
 # Pravi položaji radarjev
 uReal = [4.0, 0, -4.0, 0]
 vReal = [0, -4.0, 0, 4.0]
+# # Neznani položaji radarjev (u_k, v_k)
+# u = rand(-5:0.1:5, 4)
+# v = rand(-5:0.1:5, 4)
+# # Položaji opravljenih meritev (x_i, y_i)
+# x = rand(-15:0.1:15, 80)
+# y = rand(-15:0.1:15, 80)
+# # Pravi položaji radarjev
+# uReal = [4.0, 0, -4.0, 0]
+# vReal = [0, -4.0, 0, 4.0]
+
+# # Neznani položaji radarjev (u_k, v_k)
+# u = [0, 5.0, -5.0, 0]
+# v = [-5.0, 0.0, 0.0, 5.0]
+# # Položaji opravljenih meritev (x_i, y_i)
+# x = [3.0, 0, -3.0, 0]
+# y = [0, -3.0, 0, 3.0]
+# # Pravi položaji radarjev
+# uReal = [4.0, 0, -4.0, 0]
+# vReal = [0, -4.0, 0, 4.0]
 
 # Fukcija za izračun vrednosti z_i, jakosti signalov, v točkah (x_i, y_i) na podlagi znanih
 # lokacij (uReal_k, vReal_k)
 function strengthes(x, y, uReal, vReal)
-    res = []
+    res = Float64[]
     for (xi, yi) in zip(x, y)
         push!(res, signalStrength(xi, yi, uReal, vReal))
     end
@@ -106,27 +125,66 @@ end
 
 # Izračun jakosti z_i v točkah (x_i, y_i).
 z = strengthes(x, y, uReal, vReal)
-#z .+= 0.01 .* randn(length(z))  # dodamo naključni šum
+#z .+= 0.1 .* randn(length(z))  # dodamo naključni šum
+
 
 # Začetni približek
 x0 = vcat(u, v)
-X, _, koraki = gradmet(z, x, y, 0.01, x0; tol = 1e-10, record_steps = true, maxit = 10000)
+alpha = 0.02
+X, n, koraki = gradmet(z, x, y, alpha, x0; tol = 1e-12, record_steps = true, maxit = 10000)
+z .+= z .* (1 .+ 0.02 .* (rand(Bool) ? 1.0 : -1.0))
+X_noise, n_noise, koraki_noise = gradmet(z, x, y, alpha, x0; tol = 1e-12, record_steps = true, maxit = 10000)
+print(n)
+print(n_noise)
 
 ures = X[1:length(u)]
 vres = X[length(u)+1:end]
 
+ures_noise = X_noise[1:length(u)]
+vres_noise = X_noise[length(u)+1:end]
+
 # Narišemo konture za vsoto jakosti signalov
-xr = LinRange(-7, 7, 200)
-yr = LinRange(-7, 7, 200)
+xr = LinRange(-8, 8, 200)
+yr = LinRange(-8, 8, 200)
 zr = [log(log(signalStrength(xi, yi, uReal, vReal) + 1)) for xi in xr, yi in yr]
-contour(xr, yr, zr'; ratio = 1, colorbar=true)
+contour(xr, yr, zr; ratio = 1, colorbar=true, size = (800, 600))
 
 # Dodamo začetne ocene pozicije radarjev
-scatter!(u, v, label="Začetni radarji", color=:red)
+scatter!(u, v, label="Začetne ocene", color=:red; markersize=5)
+
+# Dodamo prave položaje radarjev
+scatter!(uReal, vReal, label="Radarji", color=:yellow; markersize=8, marker=:diamond)
 
 # Dodamo rezultat izračuna pozicij radarjev
-scatter!(ures, vres, label="Ocene radarjev", color=:blue)
+scatter!(ures, vres, label="Ocene radarjev", color=:blue; markersize=5)
+
+# Dodamo pozicije opravljenih meritev
+scatter!(x, y, label="Meritve", color=:green; markersize=5)
+
+annotate!(7, -10, text("Število iteracij: $n, Koeficient gradientne metode: $alpha", :black, :right, 12))
 
 # Dodamo korake gradientne metode
 fig = scatter!([T[1] for T in koraki], [T[2] for T in koraki], ms=1, label="Koraki", color=:green)
-savefig("plot.png")
+savefig("plot34.png")
+
+
+# Narišemo vse še za meritve, ki imajo šum
+contour(xr, yr, zr; ratio = 1, colorbar=true, size = (800, 600))
+
+# Dodamo začetne ocene pozicije radarjev
+scatter!(u, v, label="Začetne ocene", color=:red; markersize=5)
+
+# Dodamo prave položaje radarjev
+scatter!(uReal, vReal, label="Radarji", color=:yellow; markersize=8, marker=:diamond)
+
+# Dodamo rezultat izračuna pozicij radarjev
+scatter!(ures_noise, vres_noise, label="Ocene radarjev", color=:blue; markersize=5)
+
+# Dodamo pozicije opravljenih meritev
+scatter!(x, y, label="Meritve", color=:green; markersize=5)
+
+annotate!(7, -10, text("Število iteracij: $n, Koeficient gradientne metode: $alpha", :black, :right, 12))
+
+# Dodamo korake gradientne metode
+fig = scatter!([T[1] for T in koraki_noise], [T[2] for T in koraki_noise], ms=1, label="Koraki", color=:green)
+savefig("plot35.png")
