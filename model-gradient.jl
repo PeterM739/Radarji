@@ -132,10 +132,14 @@ z = strengthes(x, y, uReal, vReal)
 x0 = vcat(u, v)
 alpha = 0.02
 X, n, koraki = gradmet(z, x, y, alpha, x0; tol = 1e-12, record_steps = true, maxit = 10000)
+# Dodamo šum meritvam jakosti
 z .+= z .* (1 .+ 0.02 .* (rand(Bool) ? 1.0 : -1.0))
 X_noise, n_noise, koraki_noise = gradmet(z, x, y, alpha, x0; tol = 1e-12, record_steps = true, maxit = 10000)
-print(n)
-print(n_noise)
+println("Initial guess: ", x0)
+println("Final result: ", X)
+println("Final result (šum): ", X_noise)
+println("Število iteracij: ", n)
+println("Število iteracij (šum): ", n_noise)
 
 ures = X[1:length(u)]
 vres = X[length(u)+1:end]
@@ -167,7 +171,7 @@ annotate!(7, -10, text("Število iteracij: $n, Koeficient gradientne metode: $al
 fig = scatter!([T[1] for T in koraki], [T[2] for T in koraki], ms=1, label="Koraki", color=:green)
 savefig("plot34.png")
 
-
+# === Izris rezultatov, ki imajo meritve s šumom ===
 # Narišemo vse še za meritve, ki imajo šum
 contour(xr, yr, zr; ratio = 1, colorbar=true, size = (800, 600))
 
