@@ -1,6 +1,7 @@
 using LinearAlgebra
 using Plots
 
+# ===podatki 1===
 # Neznani položaji radarjev (u_k, v_k)
 u = [2.0, 4.0, 5.0, -3.0]
 v = [-5.0, 0.0, 0.0, -5.0]
@@ -10,22 +11,25 @@ y = [0, -3.0, 0, 3.0, 2.4, -2.4, -2.5]
 # Pravi položaji radarjev
 uReal = [4.0, 0, -4.0, 0]
 vReal = [0, -4.0, 0, 4.0]
-# # Neznani položaji radarjev (u_k, v_k)
-# u = rand(-5:0.1:5, 4)
-# v = rand(-5:0.1:5, 4)
-# # Položaji opravljenih meritev (x_i, y_i)
-# x = rand(-15:0.1:15, 80)
-# y = rand(-15:0.1:15, 80)
-# # Pravi položaji radarjev
-# uReal = [4.0, 0, -4.0, 0]
-# vReal = [0, -4.0, 0, 4.0]
 
+# ==podatki 2==
 # # Neznani položaji radarjev (u_k, v_k)
 # u = [0, 5.0, -5.0, 0]
 # v = [-5.0, 0.0, 0.0, 5.0]
 # # Položaji opravljenih meritev (x_i, y_i)
 # x = [3.0, 0, -3.0, 0]
 # y = [0, -3.0, 0, 3.0]
+# # Pravi položaji radarjev
+# uReal = [4.0, 0, -4.0, 0]
+# vReal = [0, -4.0, 0, 4.0]
+
+# ==naključno generirani podatki==
+# # Neznani položaji radarjev (u_k, v_k)
+# u = rand(-5:0.1:5, 4)
+# v = rand(-5:0.1:5, 4)
+# # Položaji opravljenih meritev (x_i, y_i)
+# x = rand(-15:0.1:15, 80)
+# y = rand(-15:0.1:15, 80)
 # # Pravi položaji radarjev
 # uReal = [4.0, 0, -4.0, 0]
 # vReal = [0, -4.0, 0, 4.0]
@@ -125,8 +129,6 @@ end
 
 # Izračun jakosti z_i v točkah (x_i, y_i).
 z = strengthes(x, y, uReal, vReal)
-#z .+= 0.1 .* randn(length(z))  # dodamo naključni šum
-
 
 # Začetni približek
 x0 = vcat(u, v)
