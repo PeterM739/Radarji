@@ -153,7 +153,7 @@ vres_noise = X_noise[length(u)+1:end]
 xr = LinRange(-8, 8, 200)
 yr = LinRange(-8, 8, 200)
 zr = [log(log(signalStrength(xi, yi, uReal, vReal) + 1)) for xi in xr, yi in yr]
-contour(xr, yr, zr; ratio = 1, colorbar=true, size = (800, 600))
+contour(xr, yr, zr; ratio = 1, colorbar=true, size = (800, 600), title="Radar Estimation Gradient")
 
 # Dodamo začetne ocene pozicije radarjev
 scatter!(u, v, label="Začetne ocene", color=:red; markersize=5)
@@ -175,7 +175,7 @@ savefig("plot34.png")
 
 # === Izris rezultatov, ki imajo meritve s šumom ===
 # Narišemo vse še za meritve, ki imajo šum
-contour(xr, yr, zr; ratio = 1, colorbar=true, size = (800, 600))
+contour(xr, yr, zr; ratio = 1, colorbar=true, size = (800, 600), title="Radar Estimation Gradient")
 
 # Dodamo začetne ocene pozicije radarjev
 scatter!(u, v, label="Začetne ocene", color=:red; markersize=5)
