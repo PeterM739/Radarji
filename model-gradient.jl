@@ -1,6 +1,7 @@
 using LinearAlgebra
 using Plots
 
+# ===podatki 1===
 # Neznani položaji radarjev (u_k, v_k)
 u = [2.0, 4.0, 5.0, -3.0]
 v = [-5.0, 0.0, 0.0, -5.0]
@@ -10,22 +11,25 @@ y = [0, -3.0, 0, 3.0, 2.4, -2.4, -2.5]
 # Pravi položaji radarjev
 uReal = [4.0, 0, -4.0, 0]
 vReal = [0, -4.0, 0, 4.0]
-# # Neznani položaji radarjev (u_k, v_k)
-# u = rand(-5:0.1:5, 4)
-# v = rand(-5:0.1:5, 4)
-# # Položaji opravljenih meritev (x_i, y_i)
-# x = rand(-15:0.1:15, 80)
-# y = rand(-15:0.1:15, 80)
-# # Pravi položaji radarjev
-# uReal = [4.0, 0, -4.0, 0]
-# vReal = [0, -4.0, 0, 4.0]
 
+# ==podatki 2==
 # # Neznani položaji radarjev (u_k, v_k)
 # u = [0, 5.0, -5.0, 0]
 # v = [-5.0, 0.0, 0.0, 5.0]
 # # Položaji opravljenih meritev (x_i, y_i)
 # x = [3.0, 0, -3.0, 0]
 # y = [0, -3.0, 0, 3.0]
+# # Pravi položaji radarjev
+# uReal = [4.0, 0, -4.0, 0]
+# vReal = [0, -4.0, 0, 4.0]
+
+# ==naključno generirani podatki==
+# # Neznani položaji radarjev (u_k, v_k)
+# u = rand(-5:0.1:5, 4)
+# v = rand(-5:0.1:5, 4)
+# # Položaji opravljenih meritev (x_i, y_i)
+# x = rand(-15:0.1:15, 80)
+# y = rand(-15:0.1:15, 80)
 # # Pravi položaji radarjev
 # uReal = [4.0, 0, -4.0, 0]
 # vReal = [0, -4.0, 0, 4.0]
@@ -125,17 +129,19 @@ end
 
 # Izračun jakosti z_i v točkah (x_i, y_i).
 z = strengthes(x, y, uReal, vReal)
-#z .+= 0.1 .* randn(length(z))  # dodamo naključni šum
-
 
 # Začetni približek
 x0 = vcat(u, v)
 alpha = 0.02
 X, n, koraki = gradmet(z, x, y, alpha, x0; tol = 1e-12, record_steps = true, maxit = 10000)
+# Dodamo šum meritvam jakosti
 z .+= z .* (1 .+ 0.02 .* (rand(Bool) ? 1.0 : -1.0))
 X_noise, n_noise, koraki_noise = gradmet(z, x, y, alpha, x0; tol = 1e-12, record_steps = true, maxit = 10000)
-print(n)
-print(n_noise)
+println("Initial guess: ", x0)
+println("Final result: ", X)
+println("Final result (šum): ", X_noise)
+println("Število iteracij: ", n)
+println("Število iteracij (šum): ", n_noise)
 
 ures = X[1:length(u)]
 vres = X[length(u)+1:end]
@@ -147,7 +153,7 @@ vres_noise = X_noise[length(u)+1:end]
 xr = LinRange(-8, 8, 200)
 yr = LinRange(-8, 8, 200)
 zr = [log(log(signalStrength(xi, yi, uReal, vReal) + 1)) for xi in xr, yi in yr]
-contour(xr, yr, zr; ratio = 1, colorbar=true, size = (800, 600))
+contour(xr, yr, zr; ratio = 1, colorbar=true, size = (800, 600), title="Radar Estimation Gradient")
 
 # Dodamo začetne ocene pozicije radarjev
 scatter!(u, v, label="Začetne ocene", color=:red; markersize=5)
@@ -167,9 +173,9 @@ annotate!(7, -10, text("Število iteracij: $n, Koeficient gradientne metode: $al
 fig = scatter!([T[1] for T in koraki], [T[2] for T in koraki], ms=1, label="Koraki", color=:green)
 savefig("plot34.png")
 
-
+# === Izris rezultatov, ki imajo meritve s šumom ===
 # Narišemo vse še za meritve, ki imajo šum
-contour(xr, yr, zr; ratio = 1, colorbar=true, size = (800, 600))
+contour(xr, yr, zr; ratio = 1, colorbar=true, size = (800, 600), title="Radar Estimation Gradient")
 
 # Dodamo začetne ocene pozicije radarjev
 scatter!(u, v, label="Začetne ocene", color=:red; markersize=5)
